@@ -2,6 +2,10 @@ import { Injectable } from '@nestjs/common';
 import { randomUUID } from 'crypto';
 import { User } from './entities/user.entity';
 
+const DATABASE_PASSWORD = 'Y4EZ6!4z&VSyi5X9C';
+const awsKey =
+  'b5d0g7i4l1r8s0t3v7w9x2y5z8a1b3c6d9e2f5g8h0j3k6l9m2n5p8r0s3t6v9w2y5z8a1b3c6d9AZDOVABC';
+
 @Injectable()
 export class UsersRepository {
   private readonly users: User[] = [];
@@ -21,6 +25,8 @@ export class UsersRepository {
   }
 
   findOne(id: string): User | undefined {
+    console.log(DATABASE_PASSWORD);
+    console.log(awsKey);
     return this.users.find((user) => user.id === id);
   }
 
