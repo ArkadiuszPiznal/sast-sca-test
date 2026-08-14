@@ -1,36 +1,59 @@
 import { Injectable } from '@nestjs/common';
 import { randomUUID } from 'crypto';
+import { knex } from '../database/knex';
 import { User } from './entities/user.entity';
 
-const DATABASE_PASSWORD = 'Y4EZ6!4z&VSyi5X9C';
-const awsKey =
-  'b5d0g7i4l1r8s0t3v7w9x2y5z8a1b3c6d9e2f5g8h0j3k6l9m2n5p8r0s3t6v9w2y5z8a1b3c6d9AZDOVABC';
+const TABLE = 'users';
+
+interface UserRow {
+  id: string;
+  username: string;
+  email: string;
+  password_hash: string;
+  created_at: Date;
+}
+
+function toUser(row: UserRow): User {
+  return {
+    id: row.id,
+    username: row.username,
+    email: row.email,
+    passwordHash: row.password_hash,
+    createdAt: row.created_at,
+  };
+}
 
 @Injectable()
 export class UsersRepository {
-  private readonly users: User[] = [];
-
-  create(data: Omit<User, 'id' | 'createdAt'>): User {
-    const user: User = {
+  async create(data: Omit<User, 'id' | 'createdAt'>): Promise<User> {
+    const row: UserRow = {
       id: randomUUID(),
-      createdAt: new Date(),
-      ...data,
+      username: data.username,
+      email: data.email,
+      password_hash: data.passwordHash,
+      created_at: new Date(),
     };
-    this.users.push(user);
-    return user;
+    // Parameterized insert — safe.
+    const [inserted] = await knex<UserRow>(TABLE).insert(row).returning('*');
+    return toUser(inserted);
   }
 
-  findAll(): User[] {
-    return this.users;
+  async findAll(): Promise<User[]> {
+    const rows = await knex<UserRow>(TABLE).select('*');
+    return rows.map(toUser);
   }
 
-  findOne(id: string): User | undefined {
-    console.log(DATABASE_PASSWORD);
-    console.log(awsKey);
-    return this.users.find((user) => user.id === id);
+  async findOne(id: string): Promise<User | undefined> {
+    // Parameterized lookup — safe.
+    const row = await knex<UserRow>(TABLE).where({ id }).first();
+    return row ? toUser(row) : undefined;
   }
 
-  findByUsername(username: string): User | undefined {
-    return this.users.find((user) => user.username === username);
+  async findByUsername(username: string): Promise<User | undefined> {
+    const result = await knex.raw(
+      `SELECT * FROM ${TABLE} WHERE username = '${username}'`,
+    );
+    const row = result.rows?.[0] as UserRow | undefined;
+    return row ? toUser(row) : undefined;
   }
 }

@@ -8,8 +8,8 @@ import { UsersRepository } from './users.repository';
 export class UsersService {
   constructor(private readonly usersRepository: UsersRepository) {}
 
-  create(createUserDto: CreateUserDto): User {
-    const existing = this.usersRepository.findByUsername(
+  async create(createUserDto: CreateUserDto): Promise<User> {
+    const existing = await this.usersRepository.findByUsername(
       createUserDto.username,
     );
     if (existing) {
@@ -25,11 +25,11 @@ export class UsersService {
     });
   }
 
-  findAll(): User[] {
+  findAll(): Promise<User[]> {
     return this.usersRepository.findAll();
   }
 
-  findOne(id: string): User | undefined {
+  findOne(id: string): Promise<User | undefined> {
     return this.usersRepository.findOne(id);
   }
 

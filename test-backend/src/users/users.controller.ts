@@ -8,17 +8,17 @@ export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Post()
-  create(@Body() createUserDto: CreateUserDto): User {
+  create(@Body() createUserDto: CreateUserDto): Promise<User> {
     return this.usersService.create(createUserDto);
   }
 
   @Get()
-  findAll(): User[] {
+  findAll(): Promise<User[]> {
     return this.usersService.findAll();
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string): User | undefined {
+  findOne(@Param('id') id: string): Promise<User | undefined> {
     return this.usersService.findOne(id);
   }
 }
